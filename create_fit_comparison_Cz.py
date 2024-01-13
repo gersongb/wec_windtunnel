@@ -41,8 +41,6 @@ for frh in frh_list:
         gp = team_object.aeromap.read_gp()
 
         # Print the optimised hyperparameters:
-        print(gp.kernel_)
-        print(gp.log_marginal_likelihood(gp.kernel_.theta))
         x0 = np.linspace(frh, frh, 50)
         x1 = np.linspace(rrh, rrh, 50)
         x2 = np.linspace(-10, 10, 50)
