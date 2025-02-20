@@ -11,3 +11,4 @@ plotly
 pyperclip
 kaleido
 pygwalker
+img2pdf

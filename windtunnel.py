@@ -9,6 +9,7 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import os
+import math
 
 
 class WindTunnel:
@@ -33,6 +34,20 @@ class WeightedData:
         self.wt_name = wt_name
         self.file_path = file_path
         self.wt_columns = wt_columns
+        
+    def trueround_array(self, array, places=0):
+        # iterate over the array and round each element:
+        rounded = [self.trueround(number, places) for number in array]
+        return rounded
+
+        
+    def trueround(self, number, places=0):
+        place = 10**(places)
+        rounded = (int(number*place + 0.5 if number>=0 else number*place -0.5))/place
+        if rounded == int(rounded):
+            rounded = int(rounded)
+        return rounded
+    
 
     def extract_data(self):
         columns_original = ['RunNumber', 'RunComment', 'Merit_Czf', 'Merit_Czr', 'Merit_Cz', 'Merit_Cx']
@@ -46,9 +61,15 @@ class WeightedData:
             tunnel_df.columns = columns_original
             tunnel_df = tunnel_df[tunnel_df['Merit_Cz'].notna()]
             tunnel_df = tunnel_df[tunnel_df['Merit_Cz'].notna()]
+            
+            print(tunnel_df['Merit_Cz'])
+            print(tunnel_df['Merit_Cx'])
 
-            tunnel_df['Merit_Cz'] = round(tunnel_df['Merit_Cz'], 3)
-            tunnel_df['Merit_Cx'] = round(tunnel_df['Merit_Cx'], 3)
+            tunnel_df['Merit_Cz'] = self.trueround_array(tunnel_df['Merit_Cz'], 3)
+            tunnel_df['Merit_Cx'] = self.trueround_array(tunnel_df['Merit_Cx'], 3)
+            
+            print(tunnel_df['Merit_Cz'])
+            print(tunnel_df['Merit_Cx'])
 
             tunnel_df['Merit_Pzf'] = 100* tunnel_df['Merit_Czf'] / tunnel_df['Merit_Cz']
 
@@ -62,7 +83,7 @@ class WeightedData:
             run_number = parent_folder.split('Run')[-1]
             
             # Convertion values:
-            PSF_to_Newtons = 47.88125
+            PSF_to_Pa = 47.88125
             LBF_to_Newtons= 4.44822
 
             # Create weights dataframe:
@@ -71,10 +92,15 @@ class WeightedData:
             weights_homol['Cz'] = [0,0,0,0,1/15,1/15,1/15,1/15, 1/15, 1/15, 1/15, 1/15, 1/15, 1/15, 1/27, 1/27, 1/27, 1/27, 1/27, 1/27, 1/27, 1/27, 1/27, 0, 0]
             weights_homol['Cx'] = [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
             
+            #weights_scnd = pd.DataFrame()
+            #weights_scnd['name'] = ['S01','S02','S03','S04','S05','S06','S07','S08','S09']
+            #weights_scnd['Cz'] = [0,0,0.075,0.258333333333333,0.075,0.075,0.258333333333333,0.258333333333333,0]
+            #weights_scnd['Cx'] = [1,1,0,0,0,0,0,0,0]
+            
             weights_scnd = pd.DataFrame()
-            weights_scnd['name'] = ['First','S01','S02','S03','S04','S05','S06']
-            weights_scnd['Cz'] = [0.29,0.32,0.025,0.19,0.19,0,0]
-            weights_scnd['Cx'] = [0,0,0,0,0,1,0]
+            weights_scnd['name'] = ['S01','S04','S08','S09']
+            weights_scnd['Cz'] = [0,0.5,0.5,0]
+            weights_scnd['Cx'] = [0,0,0,1]
 
 
             # Open the file:
@@ -108,10 +134,10 @@ class WeightedData:
 
             # Subtract the tare values from the wind on data for all columns:
             results = pd.DataFrame()
-            results['Merit_Cx'] = (df_133['D']-hs_drag_tare_133['D'])*LBF_to_Newtons/(df_133['DYNPR']*PSF_to_Newtons)
-            results['Merit_Cz'] = (df_133['L']-hs_lift_tare_133['L'])*LBF_to_Newtons/(df_133['DYNPR']*PSF_to_Newtons)
-            results['Merit_Czf'] = (df_133['LF']-hs_lift_tare_133['LF'])*LBF_to_Newtons/(df_133['DYNPR']*PSF_to_Newtons)
-            results['Merit_Czr'] = (df_133['LR']-hs_lift_tare_133['LR'])*LBF_to_Newtons/(df_133['DYNPR']*PSF_to_Newtons)
+            results['Merit_Cx'] = (df_133['D']-hs_drag_tare_133['D'])*LBF_to_Newtons/(df_133['DYNPR']*PSF_to_Pa)
+            results['Merit_Cz'] = (df_133['L']-hs_lift_tare_133['L'])*LBF_to_Newtons/(df_133['DYNPR']*PSF_to_Pa)
+            results['Merit_Czf'] = (df_133['LF']-hs_lift_tare_133['LF'])*LBF_to_Newtons/(df_133['DYNPR']*PSF_to_Pa)
+            results['Merit_Czr'] = (df_133['LR']-hs_lift_tare_133['LR'])*LBF_to_Newtons/(df_133['DYNPR']*PSF_to_Pa)
             results['Air Velocity'] = df_133['Air Velocity']
             results['YAW'] = df_133['YAW']
 
@@ -183,9 +209,13 @@ class Aeromap():
 
         # Fit a Gaussian process to the data:
         kernel = C(1.0, (1e-3, 1e3)) * RBF(length_scale=[5, 5, 1, 0.1], length_scale_bounds=(1e-1, 50))
+
         gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10, alpha=0.05, normalize_y=True)
         gp.fit(X, y)
-
+        
+        # Create another fit, with a third order polynomial kernel and no RBF:
+        
+    
         # Save the Gaussian process fit:
         np.save(self.gp_path, gp)
 
@@ -206,5 +236,6 @@ class Aeromap():
             AAD_corrections = np.zeros_like(self.AAD_correction_min)
 
         return AAD_corrections
+
 
 

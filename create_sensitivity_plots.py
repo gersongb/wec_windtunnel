@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 import aco_plots as acop
 
 
-wt_dir = r'Z:\homologation\WT_data\SAUBER-LMH-LMDh\Lambo 2024'
-file_name = 'E9202_c01_SessionData_Extern_v008.xlsm'
-title = '028'
+wt_dir = r'Z:\homologation\WT_data\SAUBER-LMH-LMDh\POR 2024'
+file_name = 'E9267_c01_SessionData_Extern_v008.xlsm'
+title = '034'
 
 
 
@@ -20,23 +20,26 @@ rh_groups = [['RH Sensitivity (yaw-roll)', ['S07', 'S08', 'S09', 'S10', 'S11', '
                                          'S15', 'S16', 'S17', 'S18', 'S19', 'S20', 'S21', 'S22',
                                          'S23', 'S24', 'S25', 'S26', 'S27', 'S28', 'S29', 'S30',
                                          'S31', 'S32', 'S33', 'S34', 'S35', 'S36'],
-                                         [-4.2, -3.2, 21], # Cz levels
-                                         [0.90, 1.10, 11], # Cx levels
+                                         [-4.5, -3.5, 21], # Cz levels
+                                         [0.9, 1.1, 11], # Cx levels
                                          [20, 50, 11], # AB levels
                                          5], # Extrapolation
 
-            ['RH Sensitivity (SL)', ['S46', 'S47', 'S48', 'S49', 'S50', 'S51', 'S52', 'S53','S54'],
-                                         [-4.9, -3.9, 21], # Cz levels
-                                         [0.93, 1.08, 11], # Cx levels
-                                         [30, 45, 11], # AB levels
+            ['RH Sensitivity (SL)', ['S45', 'S46', 'S47', 'S48', 'S49', 'S50', 'S51', 'S52', 'S53', 'S54', 'S55'],
+                                         [-5, -4, 21], # Cz levels
+                                         [0.9, 1.1, 11], # Cx levels
+                                         [30, 50, 11], # AB levels
                                          2]] # Extrapolation
 
-yaw_group = ['Yaw Sensitivity', ['S37', 'S38', 'S39', 'S40', 'S41', 'S42', 'S43', 'S44']]
+yaw_group = ['Yaw Sensitivity', ['S37', 'S38', 'S39', 'S40', 'S41', 'S42', 'S43', 'S44'],
+                [-4.7, -4.2], # Cz levels
+                [1.02, 1.07], # Cx levels
+                [35, 45]] # AB levels]
 
 
 roll_group = ['Roll Sensitivity', ['S01', 'S02', 'S03', 'S04', 'S05', 'S06'],
-                [-4.3, -3.5], # Cz levels
-                [1.0, 1.1], # Cx levels
+                [-4.7, -4.2], # Cz levels
+                [1.02, 1.07], # Cx levels
                 [35, 45]] # AB levels]]                  
 
 wt_file = os.path.join(wt_dir, file_name)
@@ -77,11 +80,14 @@ for group, step_names, levels_Cz, levels_Cx, levels_AB, extrapolation in rh_grou
 # Create yaw sensitivity plots:
 group = yaw_group[0]
 step_names = yaw_group[1]
+Cz_levels = yaw_group[2]
+Cx_levels = yaw_group[3]
+AB_levels = yaw_group[4]
 df_target = wt_data[wt_data['StepName'].isin(step_names)]
 plot = acop.ACO_Plot(df_target)
 plot_title = "Run: " + title + ' / Group: ' + group
 fig_path = os.path.join(wt_dir, title + '_' + group.replace(' ', '') + ".png")
-plt = plot.create_line_plots('UUTYaw', 'yaw [deg]', plot_title, [], [], [], False)
+plt = plot.create_line_plots('UUTYaw', 'yaw [deg]', plot_title, Cz_levels, Cx_levels, AB_levels, False)
 plt.savefig(fig_path)
 plt.close()
 

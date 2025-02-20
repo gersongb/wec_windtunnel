@@ -9,11 +9,11 @@ import windtunnel as wt
 wt_name = 'Sauber'
 #wt_name = 'Windshear'
 
-data_folder = r'Z:\homologation\WT_data\SAUBER-LMGT3\BMW_E9227\Processed_Data'
-input_file = r'Z:\homologation\WT_data\SAUBER-LMGT3\BMW_E9227\E9227_c01_SessionData_Extern_v008.xlsm'
+data_folder = r'Z:\homologation\WT_data\SAUBER-LMH-LMDh\POR 2024\Processed_Data'
+input_file = r'Z:\homologation\WT_data\SAUBER-LMH-LMDh\POR 2024\E9267_c01_SessionData_Extern_v008.xlsm'
 
-input_folder = r'Z:\homologation\WT_data\SAUBER-LMH-LMDh\BMW 2023\E9212_c01_SessionData_Extern_v008.xlsm'
-windshear_meta = r'Z:\homologation\WT_data\WINDSHEAR-LMDh\LAMBO-2023\Windshear_Meta'
+input_folder = r'Z:\homologation\WT_data\WINDSHEAR-LMH-LMDh\ASTON_MARTIN-2024\Raw_Data'
+windshear_meta = r'Z:\homologation\WT_data\WINDSHEAR-LMH-LMDh\ASTON_MARTIN-2024\Windshear_Meta'
 
 wt_columns = ['RunNumber', 'RunComment', 'Merit_Czf', 'Merit_Czr', 'Merit_Cz', 'Merit_Cx']
 
@@ -23,36 +23,33 @@ dCx_status = 0.0
 dCz_status = 0.0
 data_file_status = ''
 
-# Homologation window Sauber LMH:
-#window_pd = pd.DataFrame({
-#    'Cx': [1.040, 1.040, 1.024, 0.98, 1.040],
-#    'Cz': [4.048, 4.230, 4.230, 4.048, 4.048]
-#})
+if 'sauber' in wt_name.lower():
+    window_pd = pd.DataFrame({
+        'Cx': [1.040, 1.040, 1.024, 0.98, 1.040],
+        'Cz': [4.048, 4.230, 4.230, 4.048, 4.048]
+    })
+    
+elif 'windshear' in wt_name.lower():
+    window_pd = pd.DataFrame({
+        'Cx': [0.954, 1.014, 1.014, 0.999, 0.954],
+        'Cz': [3.965, 3.965, 4.145, 4.145, 3.965]
+    })
 
 # Braking window Sauber LMH:
-#blanking_dx = 0.01
-#blanking_dz = 0.035
+blanking_dx = 0.01
+blanking_dz = 0.035
 
-print(input_file)
-print(wt_columns)
-
-
-# Homologation window Windshear LMH:
-#window_pd = pd.DataFrame({
-#    'Cx': [0.954, 1.014, 1.014, 0.999, 0.954],
-#    'Cz': [3.965, 3.965, 4.145, 4.145, 3.965]
-#})
 
 
 # Homologation window Sauber LMGT3:
-window_pd = pd.DataFrame({
-    'Cx': [1.107, 1.161, 1.308, 1.255, 1.107],
-    'Cz': [2.850, 3.245, 3.357, 2.962, 2.850]
-})
+#window_pd = pd.DataFrame({
+#    'Cx': [1.107, 1.161, 1.308, 1.255, 1.107],
+#    'Cz': [2.850, 3.245, 3.357, 2.962, 2.850]
+#})
 
 # Braking window Sauber LMGT3:
-blanking_dx = 0.01
-blanking_dz = 0.05
+#blanking_dx = 0.01
+#blanking_dz = 0.05
 
 #  Create a dictionary of colours for the plotly graph:
 colours = {
@@ -81,8 +78,6 @@ st.sidebar.title('Tunnel Data')
 refresh_data = st.sidebar.button('Refresh Data')
 
 if 'sauber' in wt_name.lower():
-    print(input_file)
-    print(wt_columns)
     tunnel_pd = wt.WeightedData(wt_name, input_file, wt_columns).extract_data()
 
     if refresh_data:

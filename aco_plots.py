@@ -64,7 +64,7 @@ class ACO_Plot:
         plt.subplot(133)
         ab_wt_grid = self.interpolate_data(self.df['UUTFRh'], self.df['UUTRRh'], self.df['Pzf'],
                                     self.frh_grid, self.rrh_grid)
-        plt.contourf(self.frh_grid, self.rrh_grid, ab_wt_grid, extend='both')
+        plt.contourf(self.frh_grid, self.rrh_grid, ab_wt_grid, extend='both', levels=levels_AB)
         plt.plot(self.df['UUTFRh'], self.df['UUTRRh'], 'ko', ms=2)
         plt.colorbar()
         plt.title('AB')
